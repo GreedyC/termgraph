@@ -1,0 +1,27 @@
+name: Fixed-scale cross-platform preflight
+
+on:
+  push:
+    branches: [codex/preflight-fixed-bar-scale]
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: latest
+      - name: Install Python and project dependencies
+        run: uv sync --dev --python ${{ matrix.python-version }}
+      - name: Lint
+        run: uv run --no-sync python -m ruff check .
+      - name: Typecheck
+        run: uv run --no-sync python -m mypy termgraph/
+      - name: Test
+        run: uv run --no-sync python -m pytest
